@@ -35,6 +35,7 @@ struct CognitiveServicesEmotionResult {
 /// Result closure type for callbacks.
 typealias EmotionResult = ([CognitiveServicesEmotionResult]?, NSError?) -> (Void)
 
+//MARK: Subscription key resides here!!!
 /// Fill in your API key here after getting it from https://www.microsoft.com/cognitive-services/en-US/subscriptions
 let CognitiveServicesEmotionAPIKey = ""
 
@@ -100,7 +101,7 @@ class CognitiveServicesManager: NSObject {
      - parameter image:      The image to analyse.
      - parameter completion: Callback closure.
      */
-    func retrievePlausibleEmotionsForImage(_ image: UIImage, completion: EmotionResult) {
+    func retrievePlausibleEmotionsForImage(_ image: UIImage, completion: @escaping EmotionResult) {
         assert(CognitiveServicesEmotionAPIKey.characters.count > 0, "Please set the value of the API key variable (CognitiveServicesEmotionAPIKey) before attempting to use the application.")
         
         let url = URL(string: CognitiveServicesConfiguration.EmotionURL)
@@ -118,11 +119,11 @@ class CognitiveServicesManager: NSObject {
         request.httpBody = requestData
         request.httpMethod = CognitiveServicesHTTPMethod.POST
         
-        let session = URLSession.shared()
+        let session = URLSession.shared
         let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
             if let error = error {
                 // In case of an error, handle it immediately and exit without doing anything else.
-                completion(nil, error)
+                completion(nil, error as NSError)
                 return
             }
             
@@ -138,28 +139,28 @@ class CognitiveServicesManager: NSObject {
                             // See if all necessary coordinates for a rectangle are there and create a native data type
                             // with the information.
                             var resolvedFrame: CGRect? = nil
-                            if let
-                                frame = hit[CognitiveServicesKeys.FaceRectangle] as? Dictionary<String, Int>,
-                                top = frame[CognitiveServicesKeys.Top],
-                                left = frame[CognitiveServicesKeys.Left],
-                                height = frame[CognitiveServicesKeys.Height],
-                                width = frame[CognitiveServicesKeys.Width]
+                            if
+                                let frame = hit[CognitiveServicesKeys.FaceRectangle] as? Dictionary<String, Int>,
+                                let top = frame[CognitiveServicesKeys.Top],
+                                let left = frame[CognitiveServicesKeys.Left],
+                                let height = frame[CognitiveServicesKeys.Height],
+                                let width = frame[CognitiveServicesKeys.Width]
                             {
                                 resolvedFrame = CGRect(x: left, y: top, width: width, height: height)
                             }
                             
                             // Find all the available emotions and see which is the highest scoring one.
                             var emotion: CognitiveServicesEmotion? = nil
-                            if let
-                                emotions = hit[CognitiveServicesKeys.Scores] as? Dictionary<String, Double>,
-                                anger = emotions[CognitiveServicesKeys.Anger],
-                                contempt = emotions[CognitiveServicesKeys.Contempt],
-                                disgust = emotions[CognitiveServicesKeys.Disgust],
-                                fear = emotions[CognitiveServicesKeys.Fear],
-                                happiness = emotions[CognitiveServicesKeys.Happiness],
-                                neutral = emotions[CognitiveServicesKeys.Neutral],
-                                sadness = emotions[CognitiveServicesKeys.Sadness],
-                                surprise = emotions[CognitiveServicesKeys.Surprise]
+                            if
+                                let emotions = hit[CognitiveServicesKeys.Scores] as? Dictionary<String, Double>,
+                                let anger = emotions[CognitiveServicesKeys.Anger],
+                                let contempt = emotions[CognitiveServicesKeys.Contempt],
+                                let disgust = emotions[CognitiveServicesKeys.Disgust],
+                                let fear = emotions[CognitiveServicesKeys.Fear],
+                                let happiness = emotions[CognitiveServicesKeys.Happiness],
+                                let neutral = emotions[CognitiveServicesKeys.Neutral],
+                                let sadness = emotions[CognitiveServicesKeys.Sadness],
+                                let surprise = emotions[CognitiveServicesKeys.Surprise]
                             {
                                 var maximumValue = 0.0
                                 for value in [anger, contempt, disgust, fear, happiness, neutral, sadness, surprise] {
@@ -191,7 +192,7 @@ class CognitiveServicesManager: NSObject {
                             
                             // If we have both a rectangle and an emotion, we have enough information to store this as
                             // a result set and eventually return it to the caller.
-                            if let frame = resolvedFrame, emotion = emotion {
+                            if let frame = resolvedFrame, let emotion = emotion {
                                 result.append(CognitiveServicesEmotionResult(frame: frame, emotion: emotion))
                             }
                         }
@@ -201,7 +202,7 @@ class CognitiveServicesManager: NSObject {
                     return
                 }
                 catch _ {
-                    completion(nil, error)
+                    completion(nil, error! as NSError)
                     return
                 }
             } else {

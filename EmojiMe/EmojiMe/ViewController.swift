@@ -238,7 +238,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         self.validateCurrentStep()
     }
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+    @objc func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         picker.dismiss(animated: true, completion: nil)
         
         if let image = info[UIImagePickerControllerOriginalImage] as! UIImage? {
