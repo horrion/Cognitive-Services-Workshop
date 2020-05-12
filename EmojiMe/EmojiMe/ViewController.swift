@@ -90,7 +90,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                         }
                         
                         let font = UIFont.systemFont(ofSize: CGFloat(actualFontSize))
-                        let calculatedSize = string.size(attributes: [NSFontAttributeName: font])
+                        let calculatedSize = string.size(withAttributes: convertToOptionalNSAttributedStringKeyDictionary([convertFromNSAttributedStringKey(NSAttributedString.Key.font): font]))
                         
                         if calculatedSize.width > maximumSize.width {
                             actualFontSize -= stepping
@@ -100,7 +100,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                     } while true
                     
                     let font = UIFont.systemFont(ofSize: CGFloat(actualFontSize))
-                    string.draw(in: result.frame, withAttributes: [NSFontAttributeName: font])
+                    string.draw(in: result.frame, withAttributes: convertToOptionalNSAttributedStringKeyDictionary([convertFromNSAttributedStringKey(NSAttributedString.Key.font): font]))
                 }
                 
                 self.image = UIGraphicsGetImageFromCurrentImageContext()
@@ -241,7 +241,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     @objc func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
         picker.dismiss(animated: true, completion: nil)
         
-        if let image = info[UIImagePickerControllerOriginalImage] as! UIImage? {
+        if let image = info[convertFromUIImagePickerControllerInfoKey(UIImagePickerController.InfoKey.originalImage)] as! UIImage? {
             self.image = image
         } else {
             self.stepOneLabel.text = "😱"
@@ -251,3 +251,19 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
 }
 
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
+	guard let input = input else { return nil }
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromNSAttributedStringKey(_ input: NSAttributedString.Key) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromUIImagePickerControllerInfoKey(_ input: UIImagePickerController.InfoKey) -> String {
+	return input.rawValue
+}

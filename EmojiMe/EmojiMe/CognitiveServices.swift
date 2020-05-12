@@ -115,7 +115,7 @@ class CognitiveServicesManager: NSObject {
         // Convert the image reference to a JPEG binary to submit to the service. If this ends up being over 4 MB, it'll throw an error
         // on the server side. In a production environment, you would check for this condition and handle it gracefully (either reduce
         // the quality, resize the image or prompt the user to take an action).
-        let requestData = UIImageJPEGRepresentation(image, 0.9)
+        let requestData = image.jpegData(compressionQuality: 0.9)
         request.httpBody = requestData
         request.httpMethod = CognitiveServicesHTTPMethod.POST
         
