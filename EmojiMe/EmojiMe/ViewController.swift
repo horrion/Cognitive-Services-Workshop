@@ -191,6 +191,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 self.stepThreeLabel.text = "🙁"
             case .done:
                 self.stepThreeLabel.text = "😃"
+            default:
+                self.stepThreeLabel.text = ""
             }
         }
         
