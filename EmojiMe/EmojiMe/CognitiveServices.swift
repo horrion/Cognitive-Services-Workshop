@@ -35,9 +35,11 @@ struct CognitiveServicesEmotionResult {
 /// Result closure type for callbacks.
 typealias EmotionResult = ([CognitiveServicesEmotionResult]?, NSError?) -> (Void)
 
-//MARK: Subscription key resides here!!!
+//MARK: Subscription key and Endpoint URL reside here!!!
 /// Fill in your API key here after getting it from https://www.microsoft.com/cognitive-services/en-US/subscriptions
 let CognitiveServicesEmotionAPIKey = ""
+let CognitiveServicesEmotionEndpointURL = ""
+
 
 /// Caseless enum of available HTTP methods.
 /// See https://dev.projectoxford.ai/docs/services/5639d931ca73072154c1ce89/operations/563b31ea778daf121cc3a5fa for details
@@ -66,7 +68,7 @@ enum CognitiveServicesKeys {
     static let Name = "name"
     static let Confidence = "confidence"
     static let FaceRectangle = "faceRectangle"
-    static let Scores = "scores"
+    static let FaceAttributes = "faceAttributes"
     static let Height = "height"
     static let Left = "left"
     static let Top = "top"
@@ -81,6 +83,36 @@ enum CognitiveServicesKeys {
     static let Surprise = "surprise"
 }
 
+/// Caseless enum of available Face Attributes.
+/// See https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cbbe8d/operations/563879b61984550f30395236 for details
+enum FaceAttributes {
+    static let age = "age"
+    static let gender = "gender"
+    static let headPose = "headPose"
+    static let smile = "smile"
+    static let facialHair = "facialHair"
+    static let glasses = "glasses"
+    static let emotion = "emotion"
+    static let hair = "hair"
+    static let makeup = "makeup"
+    static let occlusion = "occlusion"
+    static let accessories = "accessories"
+    static let blur = "blur"
+    static let exposure = "exposure"
+    static let noise = "noise"
+}
+
+/// Caseless enum of available request parameters.
+/// See https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cbbe8d/operations/563879b61984550f30395236 for details
+enum RequestParams {
+    static let FaceId = "returnFaceId"
+    static let FaceLandmarks = "returnFaceLandmarks"
+    static let FaceAttributes = "returnFaceAttributes"
+    static let RecognitionModel = "recognitionModel"
+    static let RecognitionModelBoolean = "returnRecognitionModel"
+    static let DetectionModel = "detectionModel"
+}
+
 /// Lowest level results for both face rectangles and emotion scores. A hit represents one face and its range of emotions.
 typealias EmotionReplyHit = Dictionary<String, AnyObject>
 /// Wrapper type for an array of hits (i.e. faces). This is the top-level JSON object.
@@ -89,7 +121,7 @@ typealias EmotionReplyType = Array<EmotionReplyHit>
 /// Caseless enum of various configuration parameters.
 /// See https://dev.projectoxford.ai/docs/services/56f91f2d778daf23d8ec6739/operations/56f91f2e778daf14a499e1fa for details
 enum CognitiveServicesConfiguration {
-    static let EmotionURL = "https://api.projectoxford.ai/emotion/v1.0/recognize"
+    static let EmotionURL = CognitiveServicesEmotionEndpointURL
     static let JPEGCompressionQuality = 0.9 as CGFloat
 }
 
@@ -102,10 +134,18 @@ class CognitiveServicesManager: NSObject {
      - parameter completion: Callback closure.
      */
     func retrievePlausibleEmotionsForImage(_ image: UIImage, completion: @escaping EmotionResult) {
-        assert(CognitiveServicesEmotionAPIKey.characters.count > 0, "Please set the value of the API key variable (CognitiveServicesEmotionAPIKey) before attempting to use the application.")
+        assert(CognitiveServicesEmotionAPIKey.count > 0, "Please set the value of the API key variable (CognitiveServicesEmotionAPIKey) before attempting to use the application.")
+        assert(CognitiveServicesEmotionEndpointURL.count > 0, "Please set the value of the URL Endpoint variable (CognitiveServicesEmotionEndpointURL) before attempting to use the application.")
         
-        let url = URL(string: CognitiveServicesConfiguration.EmotionURL)
-        let request = NSMutableURLRequest(url: url!)
+        var mutableURL = URLComponents(string: CognitiveServicesConfiguration.EmotionURL)!
+        mutableURL.path = "/face/v1.0/detect"
+        
+        mutableURL.queryItems = [
+            URLQueryItem(name: RequestParams.FaceAttributes, value: FaceAttributes.emotion)
+        ]
+        
+        //let url = URL(string: CognitiveServicesConfiguration.EmotionURL)
+        let request = NSMutableURLRequest(url: mutableURL.url!)
 
         // The subscription key is always added as an HTTP header field.
         request.addValue(CognitiveServicesEmotionAPIKey, forHTTPHeaderField: CognitiveServicesHTTPHeader.SubscriptionKey)
@@ -149,10 +189,13 @@ class CognitiveServicesManager: NSObject {
                                 resolvedFrame = CGRect(x: left, y: top, width: width, height: height)
                             }
                             
+                            // Store all face attributes in an array
+                            let faceAttributes = hit[CognitiveServicesKeys.FaceAttributes]
+                            
                             // Find all the available emotions and see which is the highest scoring one.
                             var emotion: CognitiveServicesEmotion? = nil
                             if
-                                let emotions = hit[CognitiveServicesKeys.Scores] as? Dictionary<String, Double>,
+                                let emotions = faceAttributes?[FaceAttributes.emotion] as? Dictionary<String, Double>,
                                 let anger = emotions[CognitiveServicesKeys.Anger],
                                 let contempt = emotions[CognitiveServicesKeys.Contempt],
                                 let disgust = emotions[CognitiveServicesKeys.Disgust],

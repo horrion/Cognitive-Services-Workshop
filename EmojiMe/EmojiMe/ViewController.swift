@@ -238,18 +238,25 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         self.validateCurrentStep()
     }
     
-    @objc func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        
         picker.dismiss(animated: true, completion: nil)
         
-        if let image = info[convertFromUIImagePickerControllerInfoKey(UIImagePickerController.InfoKey.originalImage)] as! UIImage? {
+        if let image = info[UIImagePickerController.InfoKey(rawValue: convertFromUIImagePickerControllerInfoKey(UIImagePickerController.InfoKey.originalImage))] as! UIImage? {
+            
             self.image = image
         } else {
             self.stepOneLabel.text = "😱"
         }
         
         self.validateCurrentStep()
+        
     }
 }
+
+
+
+
 
 
 // Helper function inserted by Swift 4.2 migrator.
